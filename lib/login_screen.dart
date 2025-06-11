@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'register_screen.dart';
-import 'home_screen.dart';
+// Menggunakan Firebase untuk proses login
+
+import 'register_screen.dart'; // Halaman untuk daftar akun baru
+import 'home_screen.dart'; // Halaman utama setelah berhasil login
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,11 +14,16 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
+  // Digunakan untuk validasi form
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _auth = FirebaseAuth.instance;
-  bool _isLoading = false;
+  // Untuk mengambil input email dan password
 
+  final _auth = FirebaseAuth.instance; // Objek Firebase Auth
+  bool _isLoading = false; // Status loading saat login
+
+  // Fungsi untuk proses login
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -24,28 +31,34 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       try {
+        // Coba login dengan email dan password dari Firebase
         await _auth.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
         if (mounted) {
+          // Jika berhasil, pindah ke HomeScreen
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
         }
       } on FirebaseAuthException catch (e) {
+        // Menangani error login
         String message = 'Terjadi kesalahan';
         if (e.code == 'user-not-found') {
           message = 'Email tidak ditemukan';
         } else if (e.code == 'wrong-password') {
           message = 'Password salah';
         }
+
+        // Tampilkan pesan error
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(message)));
       } finally {
+        // Set loading menjadi false setelah login selesai
         if (mounted) {
           setState(() {
             _isLoading = false;
@@ -57,6 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    // Hapus controller untuk mencegah memory leak
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -67,6 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
+          // Latar belakang gradien biru
           gradient: LinearGradient(
             colors: [Color(0xFF2193b0), Color(0xFF6dd5ed)],
             begin: Alignment.topLeft,
@@ -87,7 +102,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   key: _formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.center, // agar konten rata tengah
                     children: [
+                      // 🖼️ Logo di tengah
+                      Center(
+                        child: Image.asset('lib/assets/logo.png', height: 100),
+                      ),
+
+                      const SizedBox(height: 16), // Jarak antara logo dan teks
+                      // 📝 Teks Login
                       const Text(
                         'Login',
                         style: TextStyle(
@@ -96,7 +120,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.blueAccent,
                         ),
                       ),
+
                       const SizedBox(height: 24),
+
+                      // Input email
                       TextFormField(
                         controller: _emailController,
                         decoration: const InputDecoration(
@@ -115,7 +142,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           return null;
                         },
                       ),
+
                       const SizedBox(height: 16),
+
+                      // Input password
                       TextFormField(
                         controller: _passwordController,
                         decoration: const InputDecoration(
@@ -134,7 +164,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           return null;
                         },
                       ),
+
                       const SizedBox(height: 24),
+
+                      // Tombol login
                       SizedBox(
                         width: double.infinity,
                         height: 48,
@@ -157,7 +190,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                         ),
                       ),
+
                       const SizedBox(height: 16),
+
+                      // Tombol untuk pindah ke halaman register
                       TextButton(
                         onPressed: () {
                           Navigator.push(

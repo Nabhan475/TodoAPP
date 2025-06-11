@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_screen.dart';
 
+/// Halaman utama aplikasi To-Do yang menampilkan dan mengelola daftar tugas pengguna.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -15,9 +16,11 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   DateTime? _selectedDate;
-  int updateIndex = -1;
-  String? currentDocId;
+  int updateIndex =
+      -1; // Menyimpan indeks item yang sedang diedit, -1 jika tidak ada.
+  String? currentDocId; // ID dokumen Firestore untuk item yang sedang diedit.
 
+  /// Menambahkan tugas baru ke Firestore
   Future<void> addList(String task) async {
     if (task.trim().isEmpty) {
       _showSnackBar('Tugas tidak boleh kosong', Colors.red);
@@ -34,13 +37,14 @@ class _HomeScreenState extends State<HomeScreen> {
           'userId': user.uid,
           'isCompleted': false,
         });
-        _resetState();
+        _resetState(); // Reset input form setelah berhasil menambah
       }
     } catch (e) {
       print('Error adding task: $e');
     }
   }
 
+  /// Memperbarui item tugas yang sudah ada di Firestore
   Future<void> updateListItem(String task, String docId) async {
     if (task.trim().isEmpty) {
       _showSnackBar('Tugas tidak boleh kosong', Colors.red);
@@ -59,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Menghapus item dari Firestore
   Future<void> deleteItem(String docId) async {
     try {
       await _firestore.collection('todos').doc(docId).delete();
@@ -67,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Mengubah status selesai/tidak selesai dari suatu tugas
   Future<void> toggleTaskStatus(String docId, bool currentStatus) async {
     try {
       await _firestore.collection('todos').doc(docId).update({
@@ -77,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Reset seluruh input dan mode edit
   void _resetState() {
     setState(() {
       updateIndex = -1;
@@ -87,12 +94,14 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Menampilkan snackbar untuk pesan kesalahan atau info
   void _showSnackBar(String message, Color bgColor) {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message), backgroundColor: bgColor));
   }
 
+  /// Logout dari aplikasi dan kembali ke halaman login
   Future<void> _handleLogout() async {
     try {
       await FirebaseAuth.instance.signOut();
@@ -115,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -139,6 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
+            // Bagian daftar tugas dari Firestore
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream:
@@ -162,6 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }
 
+                  // Tampilkan daftar tugas
                   return ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: snapshot.data!.docs.length,
@@ -216,6 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   color: Colors.blue,
                                 ),
                                 onPressed: () {
+                                  // Mengisi form dengan data item yang akan diedit
                                   setState(() {
                                     _controller.text = data['task'] ?? '';
                                     _descController.text =
@@ -242,6 +255,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
+
+            // Form input tugas baru atau edit tugas
             Container(
               padding: const EdgeInsets.all(16),
               decoration: const BoxDecoration(
@@ -250,6 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Column(
                 children: [
+                  // Input nama tugas
                   TextFormField(
                     controller: _controller,
                     decoration: InputDecoration(
@@ -260,6 +276,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
+
+                  // Input deskripsi tugas
                   TextFormField(
                     controller: _descController,
                     decoration: InputDecoration(
@@ -271,6 +289,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     maxLines: 2,
                   ),
                   const SizedBox(height: 12),
+
+                  // Pilih tanggal tenggat
                   Row(
                     children: [
                       Expanded(
@@ -299,6 +319,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
+
+                  // Tombol tambah atau update
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(

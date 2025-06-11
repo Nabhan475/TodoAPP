@@ -5,6 +5,8 @@ import 'package:lottie/lottie.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
+/// Layar registrasi akun baru menggunakan Firebase Authentication dan Firestore.
+/// Menyediakan form validasi email, password, dan konfirmasi password.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -14,28 +16,40 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  // Controller input
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  // Firebase instance
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
-  bool _isLoading = false;
 
+  bool _isLoading =
+      false; // Untuk mengontrol loading state saat proses register
+
+  /// Fungsi untuk mendaftarkan akun baru
   Future<void> _register() async {
+    // Validasi form terlebih dahulu
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
+
       try {
+        // Buat akun menggunakan email dan password
         UserCredential userCredential = await _auth
             .createUserWithEmailAndPassword(
               email: _emailController.text.trim(),
               password: _passwordController.text.trim(),
             );
 
+        // Simpan data pengguna ke Firestore
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
           'email': _emailController.text.trim(),
           'createdAt': FieldValue.serverTimestamp(),
         });
 
+        // Navigasi ke HomeScreen setelah berhasil
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -43,12 +57,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
         }
       } on FirebaseAuthException catch (e) {
+        // Penanganan error umum
         String message = 'Terjadi kesalahan';
         if (e.code == 'weak-password') {
           message = 'Password terlalu lemah';
         } else if (e.code == 'email-already-in-use') {
           message = 'Email sudah terdaftar';
         }
+
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(message)));
@@ -58,6 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  /// Dekorasi input yang digunakan untuk semua form field
   InputDecoration _inputDecoration(String label) => InputDecoration(
     labelText: label,
     labelStyle: const TextStyle(color: Colors.white),
@@ -72,6 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
+    // Bersihkan controller saat widget dihapus dari tree
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -82,6 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        // Background gradien
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFF2193b0), Color(0xFF6dd5ed)],
@@ -93,11 +112,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Form(
-              key: _formKey,
+              key: _formKey, // Kunci untuk validasi form
               child: Column(
                 children: [
+                  // Animasi register dari file Lottie
                   Lottie.asset('lib/assets/register_anim.json', height: 200),
                   const SizedBox(height: 16),
+
+                  // Input Email
                   TextFormField(
                     controller: _emailController,
                     style: const TextStyle(color: Colors.white),
@@ -114,6 +136,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
+
+                  // Input Password
                   TextFormField(
                     controller: _passwordController,
                     style: const TextStyle(color: Colors.white),
@@ -130,6 +154,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
+
+                  // Input Konfirmasi Password
                   TextFormField(
                     controller: _confirmPasswordController,
                     style: const TextStyle(color: Colors.white),
@@ -146,6 +172,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
+
+                  // Tombol register
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -165,6 +193,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+
+                  // Navigasi ke halaman login
                   TextButton(
                     onPressed:
                         () => Navigator.push(
