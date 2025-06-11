@@ -3,7 +3,7 @@
 
 ## A. Nama
 
-Franklin Jonathan
+Muhammad Nabhan Azamiy
 
 ## B. judul project
 Aplikasi To-Do List dengan Fitur Autentikasi dan Manajemen Tugas
